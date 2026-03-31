@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="DP Construction"/>
+<meta name="theme-color" content="#E8420A"/>
+<title>DP Construction & Maintenance</title>
+<!-- Supabase JS SDK — handles CORS automatically -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f4f4; min-height: 100vh; }
+  :root { --dp-orange: #E8420A; --dp-dark: #1a1a2e; --bg: #ffffff; --bg2: #f4f4f4; --text: #1a1a1a; --text2: #666; --border: rgba(0,0,0,0.1); }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1c1c1e; --bg2: #2c2c2e; --text: #f0f0f0; --text2: #aaa; --border: rgba(255,255,255,0.1); } }
+  .app { max-width: 480px; margin: 0 auto; background: var(--bg); min-height: 100vh; padding-bottom: 5rem; }
+  .hero-top { display: flex; align-items: center; gap: 12px; padding: 1.2rem 1.2rem 1rem; background: var(--bg); border-bottom: 3px solid var(--dp-orange); }
+  .dp-logo { width: 48px; height: 48px; background: var(--dp-dark); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .brand-text h1 { font-size: 16px; font-weight: 800; color: var(--dp-dark); line-height: 1.15; }
+  @media (prefers-color-scheme: dark) { .brand-text h1 { color: #f0f0f0; } }
+  .brand-text p { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .hero-banner { background: var(--dp-orange); padding: 1.1rem 1.2rem 1rem; position: relative; overflow: hidden; }
+  .hero-banner::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 50px; background: var(--bg); clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+  .hero-tagline { font-size: 22px; font-weight: 900; color: white; line-height: 1.15; text-transform: uppercase; max-width: 260px; }
+  .hero-sub { font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 6px; font-weight: 500; }
+  .hero-stats { display: flex; background: var(--dp-dark); }
+  .stat { flex: 1; padding: 10px 6px; text-align: center; border-right: 1px solid rgba(255,255,255,0.08); }
+  .stat:last-child { border-right: none; }
+  .stat-num { font-size: 17px; font-weight: 800; color: var(--dp-orange); }
+  .stat-label { font-size: 9px; color: rgba(255,255,255,0.5); margin-top: 1px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .nav-tabs { display: flex; background: var(--dp-dark); border-bottom: 3px solid var(--dp-orange); position: sticky; top: 0; z-index: 100; }
+  .tab { flex: 1; padding: 11px 2px; font-size: 10.5px; font-weight: 700; background: transparent; color: rgba(255,255,255,0.45); cursor: pointer; text-align: center; border: none; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+  .tab.active { color: white; background: var(--dp-orange); }
+  .section { padding: 0 1rem; margin-bottom: 1.5rem; }
+  .section-title { font-size: 11px; font-weight: 800; color: var(--dp-orange); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 1.5px; background: var(--dp-orange); opacity: 0.25; }
+  .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .service-card { background: var(--bg2); border: 1.5px solid transparent; border-radius: 10px; padding: 14px 6px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .service-card:active { transform: scale(0.96); border-color: var(--dp-orange); }
+  .service-icon { font-size: 22px; margin-bottom: 6px; }
+  .service-name { font-size: 10px; font-weight: 700; color: var(--text); text-transform: uppercase; letter-spacing: 0.03em; line-height: 1.3; }
+  .why-cards { display: flex; flex-direction: column; gap: 8px; }
+  .why-card { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: var(--bg2); border-radius: 10px; border-left: 3px solid var(--dp-orange); }
+  .why-text { font-size: 13px; color: var(--text); line-height: 1.55; }
+  .projects-list { display: flex; flex-direction: column; gap: 16px; }
+  .project-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .project-photo { width: 100%; height: 160px; }
+  .project-photo svg { width: 100%; height: 100%; display: block; }
+  .project-body { padding: 13px; }
+  .project-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .project-meta { font-size: 12px; color: var(--text2); margin-bottom: 9px; }
+  .project-footer { display: flex; align-items: center; justify-content: space-between; }
+  .project-badge { font-size: 11px; padding: 3px 11px; border-radius: 20px; background: var(--dp-orange); color: white; font-weight: 700; }
+  .project-service { font-size: 11px; color: var(--text2); }
+  .upload-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  .upload-zone { border: 2px dashed var(--dp-orange); border-radius: 14px; padding: 22px 10px; text-align: center; cursor: pointer; background: #fff8f6; transition: all 0.2s; position: relative; }
+  @media (prefers-color-scheme: dark) { .upload-zone { background: #2a1a16; } }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 28px; margin-bottom: 6px; }
+  .upload-title { font-size: 13px; font-weight: 800; color: var(--dp-dark); margin-bottom: 3px; }
+  @media (prefers-color-scheme: dark) { .upload-title { color: #f0f0f0; } }
+  .upload-hint { font-size: 10px; color: var(--text2); line-height: 1.4; }
+  .upload-progress { display: none; background: var(--bg2); border-radius: 10px; padding: 14px; margin-bottom: 1rem; }
+  .upload-progress.show { display: block; }
+  .progress-label { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .progress-bar-wrap { background: var(--border); border-radius: 20px; height: 8px; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--dp-orange); border-radius: 20px; transition: width 0.3s; width: 0%; }
+  .progress-status { font-size: 11px; color: var(--text2); margin-top: 6px; }
+  .media-type-tabs { display: flex; gap: 6px; margin-bottom: 0.75rem; }
+  .media-tab { padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; background: var(--bg); color: var(--text2); text-transform: uppercase; transition: all 0.15s; }
+  .media-tab.active { background: var(--dp-orange); border-color: var(--dp-orange); color: white; }
+  .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .filter-tab { padding: 6px 13px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; background: var(--bg); color: var(--text2); text-transform: uppercase; transition: all 0.15s; }
+  .filter-tab.active { background: var(--dp-dark); border-color: var(--dp-dark); color: white; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+  .gallery-item { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 1; background: var(--bg2); cursor: pointer; }
+  .gallery-item img, .gallery-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .g-label { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.72)); padding: 22px 8px 8px; font-size: 11px; font-weight: 700; color: white; }
+  .g-delete { position: absolute; top: 6px; right: 6px; background: rgba(232,66,10,0.92); color: white; border: none; border-radius: 50%; width: 26px; height: 26px; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .video-play-badge { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 42px; height: 42px; background: rgba(232,66,10,0.88); border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .loading-msg { text-align: center; padding: 2rem; color: var(--text2); font-size: 13px; grid-column: 1/-1; }
+  .empty-gallery { text-align: center; padding: 2.5rem 1rem; color: var(--text2); display: none; }
+  .empty-gallery .empty-icon { font-size: 44px; margin-bottom: 12px; }
+  .empty-gallery p { font-size: 13px; line-height: 1.65; }
+  .conn-status { font-size: 11px; padding: 8px 12px; border-radius: 8px; margin-bottom: 1rem; font-weight: 600; }
+  .conn-ok { background: #e1f5ee; color: #0f6e56; }
+  .conn-err { background: #fcebeb; color: #a32d2d; }
+  .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.94); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; flex-direction: column; }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 100%; max-height: 78vh; border-radius: 10px; object-fit: contain; }
+  .lightbox video { max-width: 100%; max-height: 78vh; border-radius: 10px; outline: none; }
+  .lightbox-close { position: absolute; top: 16px; right: 16px; background: var(--dp-orange); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .lightbox-caption { margin-top: 14px; color: white; font-size: 13px; font-weight: 600; text-align: center; }
+  .quote-form { display: flex; flex-direction: column; gap: 14px; }
+  .form-label { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 5px; }
+  .form-input { padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; background: var(--bg); color: var(--text); width: 100%; appearance: none; }
+  .form-input:focus { outline: none; border-color: var(--dp-orange); }
+  .service-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
+  .service-option { padding: 10px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; background: var(--bg); color: var(--text); text-align: center; transition: all 0.15s; text-transform: uppercase; }
+  .service-option.selected { border-color: var(--dp-orange); background: #fff3ef; color: var(--dp-orange); }
+  @media (prefers-color-scheme: dark) { .service-option.selected { background: #3a1a0a; } }
+  .submit-btn { background: var(--dp-orange); color: white; padding: 16px; border: none; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; width: 100%; }
+  .success-msg { background: #fff8f6; border: 2px solid var(--dp-orange); border-radius: 14px; padding: 24px; text-align: center; color: var(--dp-dark); font-size: 15px; line-height: 1.7; display: none; }
+  @media (prefers-color-scheme: dark) { .success-msg { background: #2a1a16; color: #f0f0f0; } }
+  .contact-cards { display: flex; flex-direction: column; gap: 10px; }
+  .contact-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .contact-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--dp-orange); color: white; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; flex-shrink: 0; }
+  .contact-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .contact-role { font-size: 11px; color: var(--dp-orange); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+  .contact-number { font-size: 17px; color: var(--text); font-weight: 600; }
+  .contact-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .call-btn { flex: 1; padding: 9px 10px; background: var(--dp-dark); color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
+  .wa-btn-small { flex: 1; padding: 9px 10px; background: #25D366; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
+  .email-card { background: var(--dp-dark); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+  .email-text { font-size: 13px; color: white; font-weight: 600; }
+  .emergency-banner { background: var(--dp-orange); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+  .emergency-text { font-size: 13px; color: white; line-height: 1.55; font-weight: 500; }
+  .area-pills { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+  .area-pill { background: var(--dp-dark); color: white; font-size: 12px; padding: 6px 15px; border-radius: 20px; font-weight: 700; border: 1.5px solid var(--dp-orange); }
+  .wa-float { position: fixed; bottom: 22px; right: 16px; background: #25D366; color: white; border: none; border-radius: 50px; padding: 14px 20px; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 9px; z-index: 500; box-shadow: 0 4px 18px rgba(37,211,102,0.4); }
+  .page { display: none; }
+  .page.active { display: block; padding-top: 1.25rem; }
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .app { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); }
+    .wa-float { bottom: calc(22px + env(safe-area-inset-bottom)); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hero-top">
+    <div class="dp-logo">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <polygon points="15,2 28,12 28,28 2,28 2,12" fill="none" stroke="white" stroke-width="2.2"/>
+        <rect x="9" y="14" width="5" height="10" fill="white"/>
+        <rect x="16" y="14" width="5" height="6" fill="white"/>
+        <line x1="9" y1="14" x2="21" y2="14" stroke="white" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>DP CONSTRUCTION &<br>MAINTENANCE</h1>
+      <p>We build it, and maintain it!</p>
+    </div>
+  </div>
+  <div class="hero-banner">
+    <div class="hero-tagline">No project too<br>big or small</div>
+    <div class="hero-sub">Competitive rates · Reliable & Professional</div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">47+</div><div class="stat-label">Projects</div></div>
+    <div class="stat"><div class="stat-num">15+</div><div class="stat-label">Yrs exp.</div></div>
+    <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Emergency</div></div>
+    <div class="stat"><div class="stat-num">★ 5.0</div><div class="stat-label">Rating</div></div>
+  </div>
+  <div class="nav-tabs">
+    <div class="tab active" onclick="showTab('home')">Home</div>
+    <div class="tab" onclick="showTab('projects')">Projects</div>
+    <div class="tab" onclick="showTab('gallery')">Gallery</div>
+    <div class="tab" onclick="showTab('quote')">Quote</div>
+    <div class="tab" onclick="showTab('contact')">Contact</div>
+  </div>
+
+  <!-- HOME -->
+  <div id="home" class="page active">
+    <div class="section">
+      <div class="section-title">Our Services</div>
+      <div class="services-grid">
+        <div class="service-card"><div class="service-icon">🏠</div><div class="service-name">New Build</div></div>
+        <div class="service-card"><div class="service-icon">🔨</div><div class="service-name">Renovations</div></div>
+        <div class="service-card"><div class="service-icon">🔧</div><div class="service-name">Maintenance</div></div>
+        <div class="service-card"><div class="service-icon">🏚️</div><div class="service-name">Roofing</div></div>
+        <div class="service-card"><div class="service-icon">🎨</div><div class="service-name">Painting</div></div>
+        <div class="service-card"><div class="service-icon">🧱</div><div class="service-name">Plastering</div></div>
+        <div class="service-card"><div class="service-icon">🛤️</div><div class="service-name">Paving</div></div>
+        <div class="service-card"><div class="service-icon">🟫</div><div class="service-name">Tiling</div></div>
+        <div class="service-card"><div class="service-icon">📐</div><div class="service-name">Drywall</div></div>
+        <div class="service-card"><div class="service-icon">🏛️</div><div class="service-name">Ceilings</div></div>
+        <div class="service-card"><div class="service-icon">🚨</div><div class="service-name">Emergency</div></div>
+        <div class="service-card"><div class="service-icon">💧</div><div class="service-name">Waterproof</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Why choose DP</div>
+      <div class="why-cards">
+        <div class="why-card"><div style="font-size:16px;flex-shrink:0">✅</div><div class="why-text">Competitive rates with free on-site quotes — no obligation.</div></div>
+        <div class="why-card"><div style="font-size:16px;flex-shrink:0">✅</div><div class="why-text">Reliable & professional service with 15+ years of experience.</div></div>
+        <div class="why-card"><div style="font-size:16px;flex-shrink:0">✅</div><div class="why-text">Transparent pricing — no hidden costs, ever.</div></div>
+        <div class="why-card"><div style="font-size:16px;flex-shrink:0">✅</div><div class="why-text">24/7 emergency callout for urgent repairs across all areas.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div id="projects" class="page">
+    <div class="section">
+      <div class="section-title">Completed Projects</div>
+      <div class="projects-list">
+        <div class="project-card"><div class="project-photo"><svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg"><rect width="480" height="160" fill="#87CEEB"/><rect x="0" y="105" width="480" height="55" fill="#7aaa60"/><rect x="70" y="48" width="340" height="112" fill="#d4c5a9"/><rect x="90" y="58" width="100" height="102" fill="#c8b89a"/><rect x="290" y="58" width="100" height="102" fill="#c8b89a"/><rect x="105" y="72" width="32" height="42" fill="#7a9bb5" rx="2"/><rect x="148" y="72" width="32" height="42" fill="#7a9bb5" rx="2"/><rect x="298" y="72" width="32" height="42" fill="#7a9bb5" rx="2"/><rect x="342" y="72" width="32" height="42" fill="#7a9bb5" rx="2"/><rect x="200" y="75" width="80" height="85" fill="#b8a882" rx="2"/><rect x="220" y="92" width="14" height="44" fill="#8b7355"/><rect x="246" y="92" width="14" height="44" fill="#8b7355"/><polygon points="50,50 240,6 430,50" fill="#8b6f4e"/><circle cx="55" cy="27" r="15" fill="#FFF9C4"/></svg></div><div class="project-body"><div class="project-title">New Residential Build</div><div class="project-meta">Despatch · Jan 2025</div><div class="project-footer"><span class="project-badge">Completed</span><span class="project-service">Building · Tiling</span></div></div></div>
+        <div class="project-card"><div class="project-photo"><svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg"><rect width="480" height="160" fill="#f0ebe4"/><rect x="0" y="132" width="480" height="28" fill="#c8b89a"/><rect x="0" y="16" width="160" height="116" fill="#e8d5b0"/><rect x="160" y="16" width="160" height="116" fill="#b8d4c4"/><rect x="320" y="16" width="160" height="116" fill="#e8d5b0"/><rect x="18" y="32" width="36" height="52" fill="#87a8c0" rx="2"/><rect x="66" y="32" width="36" height="52" fill="#87a8c0" rx="2"/><rect x="178" y="32" width="36" height="52" fill="#87a8c0" rx="2"/><rect x="226" y="32" width="36" height="52" fill="#87a8c0" rx="2"/><rect x="190" y="96" width="100" height="36" fill="#8b7355" rx="2"/></svg></div><div class="project-body"><div class="project-title">Interior Painting & Plastering</div><div class="project-meta">Uitenhage · Nov 2024</div><div class="project-footer"><span class="project-badge">Completed</span><span class="project-service">Painting · Plastering</span></div></div></div>
+        <div class="project-card"><div class="project-photo"><svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg"><rect width="480" height="160" fill="#a8c890"/><rect x="0" y="95" width="480" height="65" fill="#9e9e9e"/><line x1="0" y1="118" x2="480" y2="118" stroke="#888" stroke-width="1.5"/><line x1="60" y1="95" x2="60" y2="160" stroke="#888" stroke-width="1.5"/><line x1="120" y1="95" x2="120" y2="160" stroke="#888" stroke-width="1.5"/><line x1="180" y1="95" x2="180" y2="160" stroke="#888" stroke-width="1.5"/><line x1="240" y1="95" x2="240" y2="160" stroke="#888" stroke-width="1.5"/><rect x="120" y="30" width="240" height="70" fill="#c8b89a" rx="4"/><rect x="140" y="40" width="35" height="52" fill="#7a9bb5" rx="2"/><rect x="188" y="40" width="35" height="52" fill="#7a9bb5" rx="2"/></svg></div><div class="project-body"><div class="project-title">Driveway Paving</div><div class="project-meta">Port Elizabeth · Oct 2024</div><div class="project-footer"><span class="project-badge">Completed</span><span class="project-service">Paving</span></div></div></div>
+        <div class="project-card"><div class="project-photo"><svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg"><rect width="480" height="160" fill="#d4c5a9"/><rect x="60" y="38" width="360" height="122" fill="#c8b89a" rx="4"/><rect x="80" y="58" width="130" height="102" fill="#b8a882"/><rect x="270" y="58" width="130" height="102" fill="#b8a882"/><rect x="98" y="72" width="38" height="48" fill="#7a9bb5" rx="2"/><rect x="150" y="72" width="38" height="48" fill="#7a9bb5" rx="2"/><rect x="192" y="86" width="96" height="74" fill="#8b7355" rx="2"/><polygon points="40,40 240,5 440,40" fill="#8b6f4e"/></svg></div><div class="project-body"><div class="project-title">Full Home Renovation</div><div class="project-meta">Despatch · Jul 2024</div><div class="project-footer"><span class="project-badge">Completed</span><span class="project-service">Renovations · Painting · Tiling</span></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GALLERY -->
+  <div id="gallery" class="page">
+    <div class="section">
+      <div class="section-title">Media Gallery</div>
+      <div id="connStatus" class="conn-status" style="display:none"></div>
+      <div class="upload-row">
+        <div class="upload-zone">
+          <input type="file" accept="image/*" multiple onchange="handleUpload(this.files,'photo')"/>
+          <div class="upload-icon">📸</div>
+          <div class="upload-title">Photos</div>
+          <div class="upload-hint">JPG · PNG · HEIC</div>
+        </div>
+        <div class="upload-zone">
+          <input type="file" accept="video/*" multiple onchange="handleUpload(this.files,'video')"/>
+          <div class="upload-icon">🎬</div>
+          <div class="upload-title">Videos</div>
+          <div class="upload-hint">MP4 · MOV · AVI</div>
+        </div>
+      </div>
+      <div class="upload-progress" id="uploadProgress">
+        <div class="progress-label" id="progressLabel">Uploading...</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+        <div class="progress-status" id="progressStatus"></div>
+      </div>
+      <div class="media-type-tabs">
+        <div class="media-tab active" onclick="setMediaType('all',this)">📁 All</div>
+        <div class="media-tab" onclick="setMediaType('photo',this)">📸 Photos</div>
+        <div class="media-tab" onclick="setMediaType('video',this)">🎬 Videos</div>
+      </div>
+      <div class="filter-tabs">
+        <div class="filter-tab active" onclick="filterGallery('all',this)">All</div>
+        <div class="filter-tab" onclick="filterGallery('building',this)">Building</div>
+        <div class="filter-tab" onclick="filterGallery('painting',this)">Painting</div>
+        <div class="filter-tab" onclick="filterGallery('paving',this)">Paving</div>
+        <div class="filter-tab" onclick="filterGallery('tiling',this)">Tiling</div>
+        <div class="filter-tab" onclick="filterGallery('other',this)">Other</div>
+      </div>
+      <div class="gallery-grid" id="galleryGrid">
+        <div class="loading-msg">Connecting to gallery...</div>
+      </div>
+      <div class="empty-gallery" id="emptyGallery">
+        <div class="empty-icon">🏗️</div>
+        <p>No media yet.<br>Upload your first photo or video above!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUOTE -->
+  <div id="quote" class="page">
+    <div class="section">
+      <div class="section-title">Book a Free Quote</div>
+      <div class="quote-form" id="quoteForm">
+        <div><label class="form-label">Your full name</label><input class="form-input" type="text" id="clientName" placeholder="e.g. John Smith"/></div>
+        <div><label class="form-label">Contact number</label><input class="form-input" type="tel" id="clientPhone" placeholder="e.g. 082 000 0000"/></div>
+        <div><label class="form-label">Preferred date</label><input class="form-input" type="date" id="quoteDate"/></div>
+        <div>
+          <label class="form-label">Services needed</label>
+          <div class="service-selector">
+            <div class="service-option" onclick="toggleOpt(this)">New Build</div>
+            <div class="service-option" onclick="toggleOpt(this)">Renovations</div>
+            <div class="service-option" onclick="toggleOpt(this)">Painting</div>
+            <div class="service-option" onclick="toggleOpt(this)">Plastering</div>
+            <div class="service-option" onclick="toggleOpt(this)">Paving</div>
+            <div class="service-option" onclick="toggleOpt(this)">Tiling</div>
+            <div class="service-option" onclick="toggleOpt(this)">Drywall</div>
+            <div class="service-option" onclick="toggleOpt(this)">Ceilings</div>
+            <div class="service-option" onclick="toggleOpt(this)">Roofing</div>
+            <div class="service-option" onclick="toggleOpt(this)">Maintenance</div>
+            <div class="service-option" onclick="toggleOpt(this)">Waterproofing</div>
+            <div class="service-option" onclick="toggleOpt(this)">Emergency</div>
+          </div>
+        </div>
+        <div><label class="form-label">Tell us more (optional)</label><textarea class="form-input" id="clientNote" rows="3" placeholder="Describe the work needed..."></textarea></div>
+        <button class="submit-btn" onclick="submitQuote()">Request Free Quote</button>
+      </div>
+      <div class="success-msg" id="successMsg">
+        ✅ Quote request received!<br><br>
+        Thank you, <strong id="confirmedName"></strong>.<br>Ryan or Deon will call you within 24 hours to confirm your appointment on <strong id="confirmedDate"></strong>.<br><br>
+        <strong>DP Construction & Maintenance</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div id="contact" class="page">
+    <div class="section">
+      <div class="emergency-banner">
+        <div style="font-size:24px;flex-shrink:0">🚨</div>
+        <div class="emergency-text"><strong>Emergency callout?</strong><br>We're available 24/7. Call or WhatsApp Ryan or Deon now.</div>
+      </div>
+      <div class="contact-cards">
+        <div class="contact-card">
+          <div class="contact-avatar">RP</div>
+          <div style="flex:1">
+            <div class="contact-role">Director</div>
+            <div class="contact-name">Ryan Prince</div>
+            <div class="contact-number">074 777 6628</div>
+            <div class="contact-actions">
+              <button class="call-btn" onclick="window.location.href='tel:+27747776628'">📞 Call</button>
+              <button class="wa-btn-small" onclick="openWA('27747776628','Ryan')"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> WhatsApp</button>
+            </div>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-avatar">DP</div>
+          <div style="flex:1">
+            <div class="contact-role">Site Manager</div>
+            <div class="contact-name">Deon Prince</div>
+            <div class="contact-number">084 224 4567</div>
+            <div class="contact-actions">
+              <button class="call-btn" onclick="window.location.href='tel:+27842244567'">📞 Call</button>
+              <button class="wa-btn-small" onclick="openWA('27842244567','Deon')"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> WhatsApp</button>
+            </div>
+          </div>
+        </div>
+        <div class="email-card">
+          <div style="font-size:20px">✉️</div>
+          <div class="email-text">dpconstruction011@gmail.com</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Service Areas</div>
+      <div class="area-pills">
+        <span class="area-pill">Despatch</span><span class="area-pill">Uitenhage</span><span class="area-pill">Port Elizabeth</span><span class="area-pill">Kouga</span>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Operating Hours</div>
+      <div class="why-cards">
+        <div class="why-card"><div style="font-size:16px;flex-shrink:0">🕐</div><div class="why-text">Mon–Fri: 7:00am – 5:00pm<br>Saturday: 8:00am – 2:00pm<br>Emergency: 24/7</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="" style="display:none"/>
+  <video id="lightboxVideo" controls playsinline style="display:none"></video>
+  <div class="lightbox-caption" id="lightboxCaption"></div>
+</div>
+
+<button class="wa-float" onclick="openWA('27747776628','the DP Construction team')">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  Chat with us
+</button>
+
+<script>
+  // ── Init Supabase using the JS SDK (handles CORS automatically) ──
+  const { createClient } = supabase;
+  const sb = createClient(
+    'https://kqwghpbzldjbdamvsrjy.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtxd2docGJ6bGRqYmRhbXZzcmp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MTIxNzcsImV4cCI6MjA5MDQ4ODE3N30.DeDg8wzoUSZibqADh2idrGQPOSRkWwz7nK-Y8BNLlmI'
+  );
+  const BUCKET = 'gallery';
+
+  let allMedia = [], activeFilter = 'all', activeMediaType = 'all';
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function guessCategory(name) {
+    const n = name.toLowerCase();
+    if (n.includes('paint') || n.includes('colour') || n.includes('color')) return 'painting';
+    if (n.includes('pav') || n.includes('drive')) return 'paving';
+    if (n.includes('tile') || n.includes('tiling')) return 'tiling';
+    if (n.includes('build') || n.includes('house') || n.includes('home') || n.includes('roof')) return 'building';
+    return 'other';
+  }
+
+  function showProgress(label, pct, status) {
+    const el = document.getElementById('uploadProgress');
+    el.classList.add('show');
+    document.getElementById('progressLabel').textContent = label;
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressStatus').textContent = status;
+    if (pct >= 100) setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  function setConnStatus(ok, msg) {
+    const el = document.getElementById('connStatus');
+    el.style.display = 'block';
+    el.className = 'conn-status ' + (ok ? 'conn-ok' : 'conn-err');
+    el.textContent = msg;
+    if (ok) setTimeout(() => { el.style.display = 'none'; }, 3000);
+  }
+
+  // ── Upload ───────────────────────────────────────────────────
+  async function handleUpload(files, type) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) continue;
+      const mediaType = file.type.startsWith('video/') ? 'video' : 'photo';
+      const cat = guessCategory(file.name);
+      const ext = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      showProgress(`Uploading ${i+1} of ${files.length}...`, Math.round((i / files.length) * 70), file.name);
+
+      // Upload to storage via SDK
+      const { error: upErr } = await sb.storage.from(BUCKET).upload(fileName, file, { cacheControl: '3600', upsert: false });
+      if (upErr) { setConnStatus(false, '❌ Upload failed: ' + upErr.message); showProgress('Error', 100, '❌ ' + upErr.message); continue; }
+
+      // Get public URL
+      const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(fileName);
+      const publicURL = urlData.publicUrl;
+
+      showProgress(`Saving ${i+1} of ${files.length}...`, Math.round(((i + 0.7) / files.length) * 100), file.name);
+
+      // Save to database
+      const { error: dbErr } = await sb.from('gallery_items').insert({ name: file.name, type: mediaType, category: cat, url: publicURL });
+      if (dbErr) { setConnStatus(false, '❌ DB error: ' + dbErr.message); continue; }
+
+      showProgress(`Done!`, 100, '✅ ' + file.name + ' saved!');
+      setConnStatus(true, '✅ Uploaded successfully!');
+    }
+    await loadGallery();
+  }
+
+  // ── Load gallery ─────────────────────────────────────────────
+  async function loadGallery() {
+    document.getElementById('galleryGrid').innerHTML = '<div class="loading-msg">Loading gallery...</div>';
+    document.getElementById('emptyGallery').style.display = 'none';
+
+    let query = sb.from('gallery_items').select('*').order('created_at', { ascending: false });
+    if (activeMediaType !== 'all') query = query.eq('type', activeMediaType);
+    if (activeFilter !== 'all') query = query.eq('category', activeFilter);
+
+    const { data, error } = await query;
+    if (error) {
+      setConnStatus(false, '❌ Could not load gallery: ' + error.message);
+      document.getElementById('galleryGrid').innerHTML = '<div class="loading-msg" style="color:#E8420A">⚠️ ' + error.message + '<br><small>Check your Supabase project is active</small></div>';
+      return;
+    }
+
+    allMedia = data || [];
+    renderGallery();
+  }
+
+  // ── Render ───────────────────────────────────────────────────
+  function renderGallery() {
+    const grid = document.getElementById('galleryGrid');
+    const empty = document.getElementById('emptyGallery');
+    if (!allMedia.length) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    grid.innerHTML = allMedia.map((m, idx) => {
+      if (m.type === 'video') {
+        return `<div class="gallery-item" onclick="openLightbox(${idx})">
+          <video src="${m.url}" muted playsinline preload="metadata"></video>
+          <div class="video-play-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <div class="g-label">${cap(m.category)} · Video</div>
+          <button class="g-delete" onclick="deleteItem(event,'${m.id}','${m.url}')">✕</button>
+        </div>`;
+      }
+      return `<div class="gallery-item" onclick="openLightbox(${idx})">
+        <img src="${m.url}" alt="${m.name}" loading="lazy"/>
+        <div class="g-label">${cap(m.category)}</div>
+        <button class="g-delete" onclick="deleteItem(event,'${m.id}','${m.url}')">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Delete ───────────────────────────────────────────────────
+  async function deleteItem(e, id, url) {
+    e.stopPropagation();
+    if (!confirm('Delete this item permanently?')) return;
+    const fileName = url.split(`/${BUCKET}/`)[1];
+    await sb.storage.from(BUCKET).remove([fileName]);
+    await sb.from('gallery_items').delete().eq('id', id);
+    await loadGallery();
+  }
+
+  // ── Filters ──────────────────────────────────────────────────
+  function setMediaType(type, el) {
+    activeMediaType = type;
+    document.querySelectorAll('.media-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    loadGallery();
+  }
+
+  function filterGallery(cat, el) {
+    activeFilter = cat;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    loadGallery();
+  }
+
+  // ── Lightbox ─────────────────────────────────────────────────
+  function openLightbox(idx) {
+    const m = allMedia[idx];
+    const img = document.getElementById('lightboxImg');
+    const vid = document.getElementById('lightboxVideo');
+    document.getElementById('lightboxCaption').textContent = cap(m.category) + (m.type === 'video' ? ' · Video' : '');
+    if (m.type === 'video') {
+      img.style.display = 'none';
+      vid.style.display = 'block'; vid.src = m.url; vid.play();
+    } else {
+      vid.style.display = 'none'; vid.pause(); vid.src = '';
+      img.style.display = 'block'; img.src = m.url;
+    }
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function closeLightbox(e) {
+    if (!e || e.target === document.getElementById('lightbox') || e.target.classList.contains('lightbox-close')) {
+      const vid = document.getElementById('lightboxVideo');
+      vid.pause(); vid.src = '';
+      document.getElementById('lightbox').classList.remove('open');
+    }
+  }
+
+  // ── Nav ──────────────────────────────────────────────────────
+  function showTab(tab) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    ['home','projects','gallery','quote','contact'].forEach((t,i) => {
+      if (t === tab) document.querySelectorAll('.tab')[i].classList.add('active');
+    });
+    window.scrollTo(0,0);
+    if (tab === 'gallery') loadGallery();
+  }
+
+  function toggleOpt(el) { el.classList.toggle('selected'); }
+
+  function openWA(number, name) {
+    const msg = encodeURIComponent('Hi ' + name + ', I found you on the DP Construction app and would like to enquire about your services.');
+    window.open('https://wa.me/' + number + '?text=' + msg, '_blank');
+  }
+
+  function submitQuote() {
+    const name = document.getElementById('clientName').value.trim();
+    const phone = document.getElementById('clientPhone').value.trim();
+    const date = document.getElementById('quoteDate').value;
+    if (!name || !phone || !date) { alert('Please fill in your name, number and preferred date.'); return; }
+    const formatted = new Date(date).toLocaleDateString('en-ZA', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    document.getElementById('confirmedName').textContent = name;
+    document.getElementById('confirmedDate').textContent = formatted;
+    document.getElementById('quoteForm').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+  }
+
+  // Load gallery on start
+  loadGallery();
+</script>
+</body>
+</html>
