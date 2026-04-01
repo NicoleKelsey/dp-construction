@@ -259,6 +259,7 @@
       <div class="quote-form" id="quoteForm">
         <div><label class="form-label">Your full name</label><input class="form-input" type="text" id="clientName" placeholder="e.g. John Smith"/></div>
         <div><label class="form-label">Contact number</label><input class="form-input" type="tel" id="clientPhone" placeholder="e.g. 082 000 0000"/></div>
+        <div><label class="form-label">Site address</label><input class="form-input" type="text" id="clientAddress" placeholder="e.g. 12 Main Street, Despatch"/></div>
         <div><label class="form-label">Preferred date</label><input class="form-input" type="date" id="quoteDate"/></div>
         <div>
           <label class="form-label">Services needed</label>
@@ -335,7 +336,7 @@
         </div>
         <div class="email-card">
           <div style="font-size:20px">✉️</div>
-          <div class="email-text">dpconstruction011@gmail.com</div>
+          <div class="email-text"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a4c0d4c7cbcad7d0d6d1c7d0cdcbca949595e4c3c9c5cdc88ac7cbc9">[email&#160;protected]</a></div>
         </div>
       </div>
     </div>
@@ -367,7 +368,7 @@
   Chat with us
 </button>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   const { createClient } = supabase;
   const sb = createClient(
     'https://kqwghpbzldjbdamvsrjy.supabase.co',
@@ -525,7 +526,7 @@
   function toggleOpt(el) { el.classList.toggle('selected'); }
 
   function openWA(number, name) {
-    const msg = encodeURIComponent('Hi ' + name + ', I found you on the DP Construction app and would like to enquire about your services.');
+    const msg = encodeURIComponent('Hi ' + name + ', Good day, I would like to request a quotation for your services. This enquiry was sent through the DP Construction app.');
     window.open('https://wa.me/' + number + '?text=' + msg, '_blank');
   }
 
@@ -533,11 +534,12 @@
   function submitQuote() {
     const name = document.getElementById('clientName').value.trim();
     const phone = document.getElementById('clientPhone').value.trim();
+    const address = document.getElementById('clientAddress').value.trim();
     const date = document.getElementById('quoteDate').value;
     const note = document.getElementById('clientNote').value.trim();
 
-    if (!name || !phone || !date) {
-      alert('Please fill in your name, number and preferred date.');
+    if (!name || !phone || !address || !date) {
+      alert('Please fill in your name, number, address and preferred date.');
       return;
     }
 
@@ -552,6 +554,7 @@
       `📋 *NEW QUOTE REQUEST — DP Construction*\n\n` +
       `👤 *Name:* ${name}\n` +
       `📞 *Phone:* ${phone}\n` +
+      `📍 *Address:* ${address}\n` +
       `📅 *Preferred Date:* ${formatted}\n` +
       `🔧 *Services:* ${selected}\n` +
       `📝 *Notes:* ${note || 'None'}\n\n` +
@@ -569,14 +572,3 @@
     document.getElementById('confirmedName').textContent = name;
     document.getElementById('confirmedDate').textContent = formatted;
     document.getElementById('quoteForm').style.display = 'none';
-    document.getElementById('successMsg').style.display = 'block';
-
-    // Open WhatsApp for both
-    window.open(ryanUrl, '_blank');
-    setTimeout(() => window.open(deonUrl, '_blank'), 1000);
-  }
-
-  loadGallery();
-</script>
-</body>
-</html>
