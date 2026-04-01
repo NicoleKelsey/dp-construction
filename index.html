@@ -259,6 +259,7 @@
       <div class="quote-form" id="quoteForm">
         <div><label class="form-label">Your full name</label><input class="form-input" type="text" id="clientName" placeholder="e.g. John Smith"/></div>
         <div><label class="form-label">Contact number</label><input class="form-input" type="tel" id="clientPhone" placeholder="e.g. 082 000 0000"/></div>
+       <div><label class="form-label">Project address</label><textarea class="form-input" id="clientAddress" rows="2" placeholder="e.g. 12 Main Street, Despatch, 6220"></textarea></div>
         <div><label class="form-label">Preferred date</label><input class="form-input" type="date" id="quoteDate"/></div>
         <div>
           <label class="form-label">Services needed</label>
@@ -535,6 +536,7 @@
     const phone = document.getElementById('clientPhone').value.trim();
     const date = document.getElementById('quoteDate').value;
     const note = document.getElementById('clientNote').value.trim();
+   const address = document.getElementById('clientAddress').value.trim();
 
     if (!name || !phone || !date) {
       alert('Please fill in your name, number and preferred date.');
@@ -552,6 +554,7 @@
       `📋 *NEW QUOTE REQUEST — DP Construction*\n\n` +
       `👤 *Name:* ${name}\n` +
       `📞 *Phone:* ${phone}\n` +
+     `📍 *Address:* ${address || 'Not provided'}\n` +
       `📅 *Preferred Date:* ${formatted}\n` +
       `🔧 *Services:* ${selected}\n` +
       `📝 *Notes:* ${note || 'None'}\n\n` +
