@@ -2,7 +2,7 @@
   "name": "DP Construction & Maintenance",
   "short_name": "DP Construction",
   "description": "We build it, and maintain it!",
-  "start_url": "/",
+  "start_url": "/dp-construction/",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#E8420A",
